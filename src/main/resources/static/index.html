@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NFC Proxy Prototype</title>
+    <style>
+        body { font-family: sans-serif; display: flex; height: 100vh; margin: 0; }
+        .pane { flex: 1; padding: 20px; border-right: 1px solid #ccc; overflow-y: auto; }
+        .pane:last-child { border-right: none; background-color: #f9f9f9; }
+        h2 { border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+        button { margin-top: 5px; margin-bottom: 5px; padding: 5px 10px; cursor: pointer; }
+        input { margin-bottom: 5px; padding: 5px; width: 200px; }
+        pre { background: #eee; padding: 10px; font-size: 12px; white-space: pre-wrap; }
+        .log { border: 1px solid #ddd; padding: 5px; margin-bottom: 5px; font-family: monospace; font-size: 11px; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+
+    <!-- Requester Pane -->
+    <div class="pane" id="requesterPane">
+        <h2>Requester Flow (Người cần hỗ trợ)</h2>
+        <div>
+            <button onclick="startEkyc()">1. Bắt đầu eKYC</button>
+            <div id="ekycResult"></div>
+        </div>
+        <hr>
+        <div>
+            <label>Thiết bị quét NFC (Requester):</label>
+            <select id="requesterDeviceType">
+                <option value="GOOD">Thiết bị tốt (Quét thành công)</option>
+                <option value="NO_NFC">Không có NFC (Chuyển Hỗ trợ ngay)</option>
+                <option value="SHODDY">Thiết bị lỗi/chập chờn (Quét xịt 3 lần -> Chuyển Hỗ trợ)</option>
+            </select>
+            <button onclick="attemptNfc()">2. Quét NFC (Self)</button>
+            <div id="nfcAttemptResult"></div>
+        </div>
+        <hr>
+        <div id="helperRegistration" style="display:none;">
+            <h3>Đăng ký NFC Hộ</h3>
+            <input type="text" id="helperPhoneInput" placeholder="Số điện thoại người hỗ trợ" value="0901234567">
+            <button onclick="validateHelper()">Kiểm tra SĐT</button>
+            <div id="helperValidateResult"></div>
+            
+            <div id="tncConfirm" style="display:none;">
+                <p>Người hỗ trợ: <strong id="maskedHelperName"></strong></p>
+                <input type="checkbox" id="tncCheckbox"> Tôi đồng ý T&C
+                <button onclick="createTicket()">Gửi yêu cầu & Chờ kết quả</button>
+            </div>
+            
+            <div id="longPollStatus"></div>
+            <button id="resendBtn" style="display:none;" onclick="resendOtt()">Gửi lại yêu cầu</button>
+        </div>
+    </div>
+
+    <!-- Helper Pane -->
+    <div class="pane" id="helperPane">
+        <h2>Helper Flow (Người hỗ trợ)</h2>
+        <div>
+            <input type="text" id="myPhoneInput" placeholder="SĐT của bạn" value="0901234567">
+            <button onclick="fetchRequests()">Check Inbox (Nhận OTT)</button>
+        </div>
+        <div id="inboxList"></div>
+        <hr>
+        <div id="ticketAction" style="display:none;">
+            <h3>Xử lý yêu cầu</h3>
+            <p>Yêu cầu từ: <strong id="reqName"></strong></p>
+            <p>Ticket ID: <span id="activeTicketId"></span></p>
+            <button onclick="declineTicket()">Từ chối</button>
+            
+            <h4>Scan NFC Chip (Thiết bị Helper)</h4>
+            <select id="helperDeviceType">
+                <option value="GOOD">Thiết bị tốt (Quét thành công)</option>
+                <option value="NO_NFC">Không có NFC (Không thể hỗ trợ)</option>
+                <option value="SHODDY">Thiết bị lỗi/chập chờn (Quét xịt 3 lần)</option>
+            </select>
+            <br>
+            <button onclick="submitNfcScan()">Hoàn thành Scan & Gửi</button>
+            <div id="helperScanResult"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentEkyc = null;
+        let requesterId = "USER_" + Math.floor(Math.random() * 1000);
+        let requesterName = "Nguyen Van Requester";
+        let currentTicketId = null;
+
+        function logTo(elementId, msg, isError=false) {
+            const el = document.getElementById(elementId);
+            const className = isError ? "error" : "success";
+            el.innerHTML = `<div class="log ${className}">${new Date().toLocaleTimeString()}: ${msg}</div>`;
+        }
+
+        async function startEkyc() {
+            const res = await fetch('/api/ekyc/start', { method: 'POST' });
+            currentEkyc = await res.json();
+            logTo('ekycResult', 'eKYC started: ' + JSON.stringify(currentEkyc));
+        }
+
+        async function attemptNfc() {
+            if (!currentEkyc) {
+                alert("Please start eKYC first");
+                return;
+            }
+            const deviceType = document.getElementById('requesterDeviceType').value;
+            const deviceSupported = deviceType !== "NO_NFC";
+            const simulateSuccess = deviceType === "GOOD";
+
+            const res = await fetch('/api/nfc/attempt', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    transactionId: currentEkyc.transactionId,
+                    deviceSupported: deviceSupported,
+                    simulateSuccess: simulateSuccess
+                })
+            });
+            const data = await res.json();
+            
+            if (data.fallbackToHelper) {
+                logTo('nfcAttemptResult', data.message || 'Chuyển sang NFC Hộ.', true);
+                document.getElementById('helperRegistration').style.display = 'block';
+            } else if (!data.success) {
+                logTo('nfcAttemptResult', data.message || 'Lỗi quét NFC. Vui lòng thử lại.', true);
+            } else {
+                logTo('nfcAttemptResult', 'Quét NFC Thành công! Không cần hỗ trợ.');
+                document.getElementById('helperRegistration').style.display = 'none';
+            }
+        }
+
+        async function validateHelper() {
+            const phone = document.getElementById('helperPhoneInput').value;
+            const res = await fetch('/api/helper/validate-phone', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                logTo('helperValidateResult', 'SĐT hợp lệ.');
+                document.getElementById('maskedHelperName').innerText = data.maskedName;
+                document.getElementById('tncConfirm').style.display = 'block';
+            } else {
+                logTo('helperValidateResult', data.error, true);
+                document.getElementById('tncConfirm').style.display = 'none';
+            }
+        }
+
+        async function createTicket() {
+            if (!document.getElementById('tncCheckbox').checked) {
+                alert("Please agree to T&C");
+                return;
+            }
+            const helperPhone = document.getElementById('helperPhoneInput').value;
+            
+            const res = await fetch('/api/nfc-tickets', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    requesterId,
+                    requesterName,
+                    helperPhone,
+                    journeyType: "NTB"
+                })
+            });
+            const ticket = await res.json();
+            currentTicketId = ticket.id;
+            logTo('longPollStatus', 'Ticket Created! ' + ticket.id + '. Waiting for helper...');
+            
+            document.getElementById('resendBtn').style.display = 'inline';
+            
+            // Start long poll
+            pollForResult(currentTicketId);
+        }
+
+        async function pollForResult(ticketId) {
+            try {
+                const res = await fetch(`/api/nfc-tickets/${ticketId}/await`);
+                if (res.status === 400 || res.status === 500) {
+                     const err = await res.json();
+                     logTo('longPollStatus', 'Error: ' + JSON.stringify(err), true);
+                     return;
+                }
+                const data = await res.json();
+                
+                if (data.message === "POLL_TIMEOUT") {
+                    logTo('longPollStatus', 'Still waiting... (Timeout reached, repolling)');
+                    pollForResult(ticketId); // Re-poll
+                } else if (data.status === "COMPLETED") {
+                    logTo('longPollStatus', 'Success! Payload: ' + JSON.stringify(data.payload));
+                } else if (data.status === "DECLINED" || data.status === "EXPIRED" || data.status === "MATCH_FAILED") {
+                    logTo('longPollStatus', `Failed: ${data.status} - ${data.message}`, true);
+                } else {
+                    logTo('longPollStatus', 'Unknown state: ' + JSON.stringify(data));
+                }
+            } catch (e) {
+                logTo('longPollStatus', 'Connection dropped, will retry...', true);
+                setTimeout(() => pollForResult(ticketId), 2000);
+            }
+        }
+
+        async function resendOtt() {
+            if (!currentTicketId) return;
+            const res = await fetch(`/api/nfc-tickets/${currentTicketId}/resend`, { method: 'POST' });
+            if (res.ok) {
+                logTo('longPollStatus', 'Resent OTT successfully!');
+            }
+        }
+
+        // --- Helper side ---
+        let helperActiveTicket = null;
+
+        async function fetchRequests() {
+            const phone = document.getElementById('myPhoneInput').value;
+            const res = await fetch(`/api/helper/requests/${phone}`);
+            const tickets = await res.json();
+            
+            let html = '';
+            tickets.forEach(t => {
+                if (t.status === "SENT" || t.status === "CREATED") {
+                    html += `<div style="border:1px solid #ccc; padding:5px; margin-top:5px;">
+                        Requester: ${t.requesterName} <br>
+                        Time: ${new Date(t.createdAt).toLocaleTimeString()} <br>
+                        <button onclick="selectTicket('${t.id}', '${t.requesterName}')">Mở yêu cầu</button>
+                    </div>`;
+                }
+            });
+            document.getElementById('inboxList').innerHTML = html || '<i>No active requests</i>';
+        }
+
+        function selectTicket(id, rName) {
+            helperActiveTicket = id;
+            document.getElementById('ticketAction').style.display = 'block';
+            document.getElementById('reqName').innerText = rName;
+            document.getElementById('activeTicketId').innerText = id;
+            document.getElementById('helperScanResult').innerHTML = '';
+        }
+
+        async function declineTicket() {
+            const phone = document.getElementById('myPhoneInput').value;
+            const res = await fetch(`/api/nfc-tickets/${helperActiveTicket}/decline`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ helperPhone: phone })
+            });
+            if (res.ok) {
+                logTo('helperScanResult', 'Đã từ chối.');
+                document.getElementById('ticketAction').style.display = 'none';
+                fetchRequests();
+            }
+        }
+
+        async function submitNfcScan() {
+            const phone = document.getElementById('myPhoneInput').value;
+            const deviceType = document.getElementById('helperDeviceType').value;
+            
+            if (deviceType === "NO_NFC") {
+                logTo('helperScanResult', 'Thiết bị của bạn không hỗ trợ tính năng NFC. Vui lòng đóng yêu cầu hoặc Từ chối.', true);
+                return;
+            }
+            
+            const forceFail = deviceType === "SHODDY";
+            
+            const payload = {
+                helperPhone: phone,
+                idNumber: "079090123456",
+                fullName: "Nguyen Van Requester",
+                dob: "01/01/1990",
+                expiry: "01/01/2030",
+                portraitHash: "abcd1234efgh5678",
+                forceMatchFail: forceFail
+            };
+
+            const res = await fetch(`/api/nfc-tickets/${helperActiveTicket}/nfc-scan`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                logTo('helperScanResult', 'Scan & Submit success!');
+                document.getElementById('ticketAction').style.display = 'none';
+                fetchRequests();
+            } else {
+                const data = await res.json();
+                logTo('helperScanResult', 'Error: ' + data.error, true);
+            }
+        }
+    </script>
+</body>
+</html>

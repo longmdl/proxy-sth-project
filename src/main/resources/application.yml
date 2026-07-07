@@ -1,0 +1,13 @@
+server:
+  port: 8080
+
+nfc:
+  max-attempts: 3
+  request:
+    ttl-minutes: 5
+  helper:
+    ttl-minutes: 15
+  longpoll:
+    timeout-seconds: 30
+  device:
+    default-nfc-supported: true
