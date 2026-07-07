@@ -5,268 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NFC Proxy Prototype</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            /* MÀU CHỦ ĐẠO MỚI: Gradient Đỏ sang Cam (Mô phỏng chính xác image_0.png) */
-            --color-accent-start: #ed1c24; /* Đỏ */
-            --color-accent-end: #ff8a00;   /* Cam */
-            --color-accent-gradient: linear-gradient(90deg, var(--color-accent-start) 0%, var(--color-accent-end) 100%);
-            --color-accent-hover-gradient: linear-gradient(90deg, #f03e45 0%, #ff9e33 100%);
-
-            /* Các màu sắc khác được giữ tinh tế */
-            --primary-color: #004685; /* Giữ Xanh Navy Ngân hàng cho các điểm nhấn nhỏ */
-            --primary-hover: #003666;
-            --secondary-color: #f1f3f4;
-            --text-main: #333333;
-            --text-muted: #666666;
-            --bg-body: #e9ecef;
-            --success-bg: #e6f4ea;
-            --success-text: #137333;
-            --error-bg: #fce8e6;
-            --error-text: #c5221f;
-            --border-color: #dadce0;
-        }
-
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: var(--bg-body);
-            display: flex; 
-            justify-content: center;
-            align-items: flex-start; /* Cho phép cuộn trang chính nếu cần */
-            gap: 40px;
-            min-height: 100vh; 
-            margin: 0; 
-            padding: 40px 20px;
-            box-sizing: border-box;
-        }
-
-        /* Ép tất cả các thành phần phải bọc gọn chữ vào trong, tự động bẻ dòng */
-        * {
-            box-sizing: border-box; 
-        }
-
-        p, div, span, strong, .log, .inbox-card, h2 {
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            word-break: break-word; /* Kể cả chuỗi ID hay payload dài không có khoảng trắng cũng bẻ hết */
-            white-space: normal;
-        }
-        
-        /* Giả lập khung di động mỏng, tinh tế - Mô phỏng iPhone 17 mỏng nhất */
-        .device-mockup {
-            width: 380px;
-            background: #ffffff;
-            border-radius: 35px; /* Bo tròn hơn */
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            border: 6px solid #1a1a1a; /* Viền kim loại cực mỏng và sâu hơn */
-            height: 90vh; /* Độ dài vừa với màn hình trình duyệt */
-            position: relative; /* Cho Dynamic Island và Home Bar */
-        }
-
-        /* Dynamic Island - Mô phỏng tinh tế phía trên */
-        .device-mockup::before {
-            content: '';
-            position: absolute;
-            top: 12px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 105px; /* Chiều rộng viên thuốc nhỏ */
-            height: 39px;
-            background-color: #000;
-            border-radius: 20px;
-            z-index: 20;
-            box-shadow: inset -20px 0px 8px -10px rgba(255, 255, 255, 0.15),
-                        inset 20px 0px 8px -10px rgba(255, 255, 255, 0.15);
-        }
-
-        /* Home Bar - Thanh ngang mỏng phía dưới */
-        .device-mockup::after {
-            content: '';
-            position: absolute;
-            bottom: 12px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 120px;
-            height: 4px;
-            background-color: #999; /* Xám mờ */
-            border-radius: 2px;
-            z-index: 20;
-            opacity: 0.7;
-        }
-
-        .app-header {
-            /* ÁP DỤNG GRADIENT CHỦ ĐẠO MỚI CHO HEADER */
-            background-image: var(--color-accent-gradient);
-            color: #ffffff;
-            padding: 60px 20px 15px 20px; /* Giảm padding dưới cho Dynamic Island */
-            text-align: center;
-            font-weight: 600;
-            font-size: 1.1rem;
-            letter-spacing: 0.5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            position: relative;
-            z-index: 10;
-        }
-
-        .app-body {
-            padding: 24px 20px 30px 20px; /* Tăng padding dưới cho Home Bar */
-            flex: 1;
-            overflow-y: auto; /* Cuộn bên trong thiết bị */
-            height: calc(100% - 70px - 20px); /* Chiều cao calc cho header và bar */
-        }
-
-        .section-title {
-            font-size: 0.95rem;
-            /* Cập nhật màu section title sang màu nhấn đỏ/cam */
-            color: var(--color-accent-start); 
-            font-weight: 600;
-            text-transform: uppercase;
-            margin-top: 0;
-            margin-bottom: 16px;
-            border-bottom: 2px solid var(--secondary-color);
-            padding-bottom: 8px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-
-        input[type="text"], select {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1.5px solid var(--border-color);
-            border-radius: 10px;
-            font-size: 0.95rem;
-            font-family: inherit;
-            color: var(--text-main);
-            box-sizing: border-box;
-            transition: border-color 0.2s ease;
-        }
-
-        input[type="text"]:focus, select:focus {
-            outline: none;
-            border-color: var(--color-accent-start); /* Cập nhật viền focus màu nhấn */
-            box-shadow: 0 0 0 3px rgba(237, 28, 36, 0.1);
-        }
-
-        /* NÚT BẤM GRADIENT CHỦ ĐẠO MỚI (Giống image_0.png) */
-        button { 
-            width: 100%;
-            background-image: var(--color-accent-gradient);
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 10px rgba(237, 28, 36, 0.2);
-        }
-
-        button:hover { 
-            background-image: var(--color-accent-hover-gradient);
-            transform: translateY(-1px);
-            box-shadow: 0 6px 14px rgba(237, 28, 36, 0.3);
-        }
-
-        button.outline {
-            background-color: transparent;
-            /* Cập nhật outline màu nhấn */
-            color: var(--color-accent-start);
-            border: 1.5px solid var(--color-accent-start);
-            background-image: none;
-            box-shadow: none;
-        }
-
-        button.outline:hover {
-            background-color: rgba(237, 28, 36, 0.05);
-            transform: none;
-            border-color: var(--color-accent-start);
-        }
-
-        hr {
-            border: none;
-            border-top: 1px solid var(--border-color);
-            margin: 24px 0;
-        }
-
-        /* Styling for Status Logs */
-        .log-container {
-            margin-top: 12px;
-        }
-        
-        .log { 
-            padding: 12px 16px; 
-            border-radius: 8px; 
-            font-size: 0.85rem; 
-            font-weight: 500;
-            line-height: 1.4;
-            animation: fadeIn 0.3s ease-in-out;
-        }
-
-        .success { 
-            background-color: var(--success-bg); 
-            color: var(--success-text); 
-            border: 1px solid #a8dab5;
-        }
-
-        .error { 
-            background-color: var(--error-bg); 
-            color: var(--error-text); 
-            border: 1px solid #f6b2b0;
-        }
-
-        /* Checkbox T&C */
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            margin: 16px 0;
-            font-size: 0.9rem;
-            color: var(--text-main);
-        }
-        .checkbox-group input {
-            margin-right: 10px;
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-        }
-
-        /* Helper Inbox Cards */
-        .inbox-card {
-            background: #fff;
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 16px;
-            margin-top: 12px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-        }
-        .inbox-card p { margin: 0 0 8px 0; font-size: 0.9rem; color: var(--text-muted);}
-        .inbox-card strong { color: var(--text-main); }
-        .inbox-card button { padding: 10px; font-size: 0.9rem; }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Custom Scrollbar cho iPhone */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd0d6; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #aab0b6; }
-    </style>
+    
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
@@ -276,7 +16,7 @@
             
             <div class="form-group">
                 <h2 class="section-title">1. Định danh eKYC</h2>
-                <button onclick="startEkyc()">Bắt đầu eKYC</button>
+                <button onclick="RequesterFlow.startEkyc()">Bắt đầu eKYC</button>
                 <div id="ekycResult" class="log-container"></div>
             </div>
 
@@ -290,7 +30,7 @@
                     <option value="NO_NFC">Không có NFC (Chuyển Hỗ trợ ngay)</option>
                     <option value="SHODDY">Thiết bị lỗi/chập chờn (Quét xịt 3 lần)</option>
                 </select>
-                <button onclick="attemptNfc()" class="outline">Thực hiện quét NFC</button>
+                <button onclick="RequesterFlow.attemptNfc()" class="outline">Thực hiện quét NFC</button>
                 <div id="nfcAttemptResult" class="log-container"></div>
             </div>
 
@@ -300,7 +40,7 @@
                 <div class="form-group">
                     <label>Nhập số điện thoại người hỗ trợ:</label>
                     <input type="text" id="helperPhoneInput" placeholder="Ví dụ: 0901234567" value="0901234567">
-                    <button onclick="validateHelper()">Kiểm tra thông tin</button>
+                    <button onclick="RequesterFlow.validateHelper()">Kiểm tra thông tin</button>
                     <div id="helperValidateResult" class="log-container"></div>
                 </div>
                 
@@ -310,11 +50,11 @@
                         <input type="checkbox" id="tncCheckbox"> 
                         <label style="margin:0; cursor:pointer;" for="tncCheckbox">Tôi đồng ý với các Điều khoản & Thỏa thuận chia sẻ thông tin</label>
                     </div>
-                    <button onclick="createTicket()">Gửi yêu cầu hỗ trợ</button>
+                    <button onclick="RequesterFlow.createTicket()">Gửi yêu cầu hỗ trợ</button>
                 </div>
                 
                 <div id="longPollStatus" class="log-container"></div>
-                <button id="resendBtn" class="outline" style="display:none; margin-top: 12px;" onclick="resendOtt()">Gửi lại thông báo (OTT)</button>
+                <button id="resendBtn" class="outline" style="display:none; margin-top: 12px;" onclick="RequesterFlow.resendOtt()">Gửi lại thông báo (OTT)</button>
             </div>
         </div>
     </div>
@@ -327,7 +67,7 @@
                 <h2 class="section-title">Hộp thư yêu cầu</h2>
                 <label>Đang đăng nhập với SĐT:</label>
                 <input type="text" id="myPhoneInput" placeholder="SĐT của bạn" value="0901234567">
-                <button onclick="fetchRequests()">Tải lại thông báo (Check OTT)</button>
+                <button onclick="HelperFlow.fetchRequests()">Tải lại thông báo (Check OTT)</button>
             </div>
 
             <div id="inboxList"></div>
@@ -350,8 +90,8 @@
                 </div>
                 
                 <div style="display: flex; gap: 10px;">
-                    <button onclick="declineTicket()" class="outline" style="border-color: var(--error-text); color: var(--error-text);">Từ chối</button>
-                    <button onclick="submitNfcScan()">Quét NFC & Gửi</button>
+                    <button onclick="HelperFlow.declineTicket()" class="outline" style="border-color: var(--error-text); color: var(--error-text);">Từ chối</button>
+                    <button onclick="HelperFlow.submitNfcScan()">Quét NFC & Gửi</button>
                 </div>
                 
                 <div id="helperScanResult" class="log-container"></div>
@@ -360,211 +100,7 @@
         </div>
     </div>
 
-    <script>
-        let currentEkyc = null;
-        let requesterId = "USER_" + Math.floor(Math.random() * 1000);
-        let requesterName = "Nguyen Van Requester";
-        let currentTicketId = null;
-
-        function logTo(elementId, msg, isError=false) {
-            const el = document.getElementById(elementId);
-            const className = isError ? "error" : "success";
-            el.innerHTML = `<div class="log ${className}">${new Date().toLocaleTimeString()} - ${msg}</div>`;
-        }
-
-        async function startEkyc() {
-            const res = await fetch('/api/ekyc/start', { method: 'POST' });
-            currentEkyc = await res.json();
-            logTo('ekycResult', 'eKYC started: ' + JSON.stringify(currentEkyc));
-        }
-
-        async function attemptNfc() {
-            if (!currentEkyc) {
-                alert("Please start eKYC first");
-                return;
-            }
-            const deviceType = document.getElementById('requesterDeviceType').value;
-            const deviceSupported = deviceType !== "NO_NFC";
-            const simulateSuccess = deviceType === "GOOD";
-
-            const res = await fetch('/api/nfc/attempt', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    transactionId: currentEkyc.transactionId,
-                    deviceSupported: deviceSupported,
-                    simulateSuccess: simulateSuccess
-                })
-            });
-            const data = await res.json();
-            
-            if (data.fallbackToHelper) {
-                logTo('nfcAttemptResult', data.message || 'Chuyển sang NFC Hộ.', true);
-                document.getElementById('helperRegistration').style.display = 'block';
-            } else if (!data.success) {
-                logTo('nfcAttemptResult', data.message || 'Lỗi quét NFC. Vui lòng thử lại.', true);
-            } else {
-                logTo('nfcAttemptResult', 'Quét NFC Thành công! Không cần hỗ trợ.');
-                document.getElementById('helperRegistration').style.display = 'none';
-            }
-        }
-
-        async function validateHelper() {
-            const phone = document.getElementById('helperPhoneInput').value;
-            const res = await fetch('/api/helper/validate-phone', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ phone })
-            });
-            const data = await res.json();
-            if (res.ok) {
-                logTo('helperValidateResult', 'SĐT hợp lệ.');
-                document.getElementById('maskedHelperName').innerText = data.maskedName;
-                document.getElementById('tncConfirm').style.display = 'block';
-            } else {
-                logTo('helperValidateResult', data.error, true);
-                document.getElementById('tncConfirm').style.display = 'none';
-            }
-        }
-
-        async function createTicket() {
-            if (!document.getElementById('tncCheckbox').checked) {
-                alert("Bạn cần đồng ý với Điều khoản và Thỏa thuận.");
-                return;
-            }
-            const helperPhone = document.getElementById('helperPhoneInput').value;
-            
-            const res = await fetch('/api/nfc-tickets', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    requesterId,
-                    requesterName,
-                    helperPhone,
-                    journeyType: "NTB"
-                })
-            });
-            const ticket = await res.json();
-            currentTicketId = ticket.id;
-            logTo('longPollStatus', 'Đã tạo phiếu! ' + ticket.id + '. Đang chờ xác nhận từ người hỗ trợ...');
-            
-            document.getElementById('resendBtn').style.display = 'block';
-            
-            pollForResult(currentTicketId);
-        }
-
-        async function pollForResult(ticketId) {
-            try {
-                const res = await fetch(`/api/nfc-tickets/${ticketId}/await`);
-                if (res.status === 400 || res.status === 500) {
-                     const err = await res.json();
-                     logTo('longPollStatus', 'Lỗi: ' + JSON.stringify(err), true);
-                     return;
-                }
-                const data = await res.json();
-                
-                if (data.message === "POLL_TIMEOUT") {
-                    logTo('longPollStatus', 'Vẫn đang đợi phản hồi... (Tự động tải lại)');
-                    pollForResult(ticketId); 
-                } else if (data.status === "COMPLETED") {
-                    logTo('longPollStatus', 'Thành công! Payload: ' + JSON.stringify(data.payload));
-                } else if (data.status === "DECLINED" || data.status === "EXPIRED" || data.status === "MATCH_FAILED") {
-                    logTo('longPollStatus', `Thất bại: ${data.status} - ${data.message}`, true);
-                } else {
-                    logTo('longPollStatus', 'Trạng thái không xác định: ' + JSON.stringify(data));
-                }
-            } catch (e) {
-                logTo('longPollStatus', 'Mất kết nối mạng, đang thử lại...', true);
-                setTimeout(() => pollForResult(ticketId), 2000);
-            }
-        }
-
-        async function resendOtt() {
-            if (!currentTicketId) return;
-            const res = await fetch(`/api/nfc-tickets/${currentTicketId}/resend`, { method: 'POST' });
-            if (res.ok) {
-                logTo('longPollStatus', 'Đã gửi lại thông báo thành công!');
-            }
-        }
-
-        let helperActiveTicket = null;
-
-        async function fetchRequests() {
-            const phone = document.getElementById('myPhoneInput').value;
-            const res = await fetch(`/api/helper/requests/${phone}`);
-            const tickets = await res.json();
-            
-            let html = '';
-            tickets.forEach(t => {
-                if (t.status === "SENT" || t.status === "CREATED") {
-                    html += `<div class="inbox-card">
-                        <p>Yêu cầu từ: <strong>${t.requesterName}</strong></p>
-                        <p>Thời gian: ${new Date(t.createdAt).toLocaleTimeString()}</p>
-                        <button onclick="selectTicket('${t.id}', '${t.requesterName}')">Mở yêu cầu</button>
-                    </div>`;
-                }
-            });
-            document.getElementById('inboxList').innerHTML = html || '<p style="text-align:center; color:#888; font-size: 0.9rem; margin-top: 20px;"><i>Không có yêu cầu nào đang chờ.</i></p>';
-        }
-
-        function selectTicket(id, rName) {
-            helperActiveTicket = id;
-            document.getElementById('ticketAction').style.display = 'block';
-            document.getElementById('reqName').innerText = rName;
-            document.getElementById('activeTicketId').innerText = id;
-            document.getElementById('helperScanResult').innerHTML = '';
-        }
-
-        async function declineTicket() {
-            const phone = document.getElementById('myPhoneInput').value;
-            const res = await fetch(`/api/nfc-tickets/${helperActiveTicket}/decline`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ helperPhone: phone })
-            });
-            if (res.ok) {
-                logTo('helperScanResult', 'Đã từ chối yêu cầu.');
-                document.getElementById('ticketAction').style.display = 'none';
-                fetchRequests();
-            }
-        }
-
-        async function submitNfcScan() {
-            const phone = document.getElementById('myPhoneInput').value;
-            const deviceType = document.getElementById('helperDeviceType').value;
-            
-            if (deviceType === "NO_NFC") {
-                logTo('helperScanResult', 'Thiết bị của bạn không hỗ trợ NFC. Vui lòng đóng yêu cầu hoặc Từ chối.', true);
-                return;
-            }
-            
-            const forceFail = deviceType === "SHODDY";
-            
-            const payload = {
-                helperPhone: phone,
-                idNumber: "079090123456",
-                fullName: "Nguyen Van Requester",
-                dob: "01/01/1990",
-                expiry: "01/01/2030",
-                portraitHash: "abcd1234efgh5678",
-                forceMatchFail: forceFail
-            };
-
-            const res = await fetch(`/api/nfc-tickets/${helperActiveTicket}/nfc-scan`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            if (res.ok) {
-                logTo('helperScanResult', 'Quét NFC thành công và đã gửi dữ liệu!');
-                document.getElementById('ticketAction').style.display = 'none';
-                fetchRequests();
-            } else {
-                const data = await res.json();
-                logTo('helperScanResult', 'Lỗi: ' + data.error, true);
-            }
-        }
-    </script>
+    <script src="/js/ui.js"></script>
+    <script src="/js/app.js"></script>
 </body>
 </html>
