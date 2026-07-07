@@ -4,7 +4,7 @@ server:
 nfc:
   max-attempts: 3
   request:
-    ttl-minutes: 5
+    ttl-minutes: 15
   helper:
     ttl-minutes: 15
   longpoll:

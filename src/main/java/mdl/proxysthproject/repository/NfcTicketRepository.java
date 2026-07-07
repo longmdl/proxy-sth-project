@@ -3,7 +3,7 @@ package mdl.proxysthproject.repository;
 import mdl.proxysthproject.model.NfcTicket;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
+// import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
