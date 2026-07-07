@@ -1,6 +1,6 @@
 # Prototype: Tính năng Thu thập Sinh trắc học Hộ (NFC Proxy)
 
-Đây là bản prototype (Spring Boot) mô phỏng tính năng "Thu thập sinh trắc học hộ" của HDBank. Tính năng này cho phép một khách hàng có thiết bị hỗ trợ NFC (Người hỗ trợ) giúp một khách hàng khác không có NFC (Người cần hỗ trợ) quét chip CCCD của họ. 
+Đây là bản prototype (Spring Boot) mô phỏng tính năng "Thu thập sinh trắc học hộ" của app banking. Tính năng này cho phép một khách hàng có thiết bị hỗ trợ NFC (Người hỗ trợ) giúp một khách hàng khác không có NFC (Người cần hỗ trợ) quét chip CCCD của họ. 
 
 Dữ liệu NFC sau khi quét sẽ được chuyển ngược về quy trình của người cần hỗ trợ thông qua cơ chế **Long-Polling**.
 
