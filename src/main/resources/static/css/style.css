@@ -22,12 +22,19 @@ body {
     font-family: 'Inter', sans-serif; 
     background-color: var(--bg-body);
     display: flex; 
-    justify-content: center;
-    align-items: flex-start; 
-    gap: 40px;
+    flex-direction: column;
+    align-items: center; 
     min-height: 100vh; 
     margin: 0; 
     padding: 40px 20px;
+}
+
+.devices-layout {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 40px;
+    width: 100%;
 }
 
 p, div, span, strong, .log, .inbox-card, h2 {

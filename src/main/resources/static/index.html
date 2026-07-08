@@ -10,101 +10,103 @@
 </head>
 <body>
 
-    <div class="device-mockup" id="requesterPane">
-        <div class="app-header">MBank - Khách hàng</div>
-        <div class="app-body">
-            
-            <div class="form-group">
-                <h2 class="section-title">1. Định danh eKYC</h2>
-                <button onclick="RequesterFlow.startEkyc()">Bắt đầu eKYC</button>
-                <div id="ekycResult" class="log-container"></div>
-            </div>
-
-            <hr>
-
-            <div class="form-group">
-                <h2 class="section-title">2. Quét NFC (Self)</h2>
-                <label>Tình trạng thiết bị hiện tại:</label>
-                <select id="requesterDeviceType">
-                    <option value="GOOD">Thiết bị tốt (Quét thành công)</option>
-                    <option value="NO_NFC">Không có NFC (Chuyển Hỗ trợ ngay)</option>
-                    <option value="SHODDY">Thiết bị lỗi/chập chờn (Quét xịt 3 lần)</option>
-                </select>
-                <button onclick="RequesterFlow.attemptNfc()" class="outline">Thực hiện quét NFC</button>
-                <div id="nfcAttemptResult" class="log-container"></div>
-            </div>
-
-            <div id="helperRegistration" style="display:none;">
-                <hr>
-                <h2 class="section-title">3. Đăng ký NFC Hộ</h2>
-                <div class="form-group">
-                    <label>Nhập số điện thoại người hỗ trợ:</label>
-                    <input type="text" id="helperPhoneInput" placeholder="Ví dụ: 0901234567" value="0901234567">
-                    <button onclick="RequesterFlow.validateHelper()">Kiểm tra thông tin</button>
-                    <div id="helperValidateResult" class="log-container"></div>
-                </div>
-                
-                <div id="tncConfirm" style="display:none; background: var(--secondary-color); padding: 16px; border-radius: 12px;">
-                    <p style="margin-top:0; font-size: 0.9rem;">Người hỗ trợ: <strong id="maskedHelperName" style="color: var(--primary-color);"></strong></p>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="tncCheckbox"> 
-                        <label style="margin:0; cursor:pointer;" for="tncCheckbox">Tôi đồng ý với các Điều khoản & Thỏa thuận chia sẻ thông tin</label>
-                    </div>
-                    <button onclick="RequesterFlow.createTicket()">Gửi yêu cầu hỗ trợ</button>
-                </div>
-                
-                <div id="longPollStatus" class="log-container"></div>
-                <button id="resendBtn" class="outline" style="display:none; margin-top: 12px;" onclick="RequesterFlow.resendOtt()">Gửi lại thông báo (OTT)</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="device-mockup" id="helperPane">
-        <div class="app-header">MBank - Người hỗ trợ</div>
-        <div class="app-body">
-            
-            <div class="form-group">
-                <h2 class="section-title">Hộp thư yêu cầu</h2>
-                <div style="margin-bottom:10px;">
-                    <h3>Đăng ký Người Dùng Mới</h3>
-                    <input type="text" id="signupPhone" placeholder="SĐT mới" value="0988888888">
-                    <input type="text" id="signupName" placeholder="Tên" value="Le Van D">
-                    <button onclick="HelperFlow.signupUser()">Đăng ký</button>
-                    <div id="signupResult"></div>
-                </div>
-                <hr>
-                <label>Đang đăng nhập với SĐT:</label>
-                <input type="text" id="myPhoneInput" placeholder="SĐT của bạn" value="0901234567">
-                <button onclick="HelperFlow.fetchRequests()">Tải lại thông báo (Check OTT)</button>
-            </div>
-
-            <div id="inboxList"></div>
-
-            <div id="ticketAction" style="display:none;">
-                <hr>
-                <h2 class="section-title">Xử lý yêu cầu NFC</h2>
-                <div style="background: var(--success-bg); padding: 16px; border-radius: 12px; margin-bottom: 20px;">
-                    <p style="margin: 0 0 8px 0; font-size: 0.9rem; color: var(--success-text);">Yêu cầu từ: <strong id="reqName"></strong></p>
-                    <p style="margin: 0; font-size: 0.8rem; color: #666;">Mã phiếu: <span id="activeTicketId"></span></p>
-                </div>
+    <div class="devices-layout">
+        <div class="device-mockup" id="requesterPane">
+            <div class="app-header">MBank - Khách hàng</div>
+            <div class="app-body">
                 
                 <div class="form-group">
-                    <label>Thiết bị của bạn (Helper):</label>
-                    <select id="helperDeviceType">
+                    <h2 class="section-title">1. Định danh eKYC</h2>
+                    <button onclick="RequesterFlow.startEkyc()">Bắt đầu eKYC</button>
+                    <div id="ekycResult" class="log-container"></div>
+                </div>
+    
+                <hr>
+    
+                <div class="form-group">
+                    <h2 class="section-title">2. Quét NFC (Self)</h2>
+                    <label>Tình trạng thiết bị hiện tại:</label>
+                    <select id="requesterDeviceType">
                         <option value="GOOD">Thiết bị tốt (Quét thành công)</option>
-                        <option value="NO_NFC">Không có NFC (Báo lỗi không thể hỗ trợ)</option>
+                        <option value="NO_NFC">Không có NFC (Chuyển Hỗ trợ ngay)</option>
                         <option value="SHODDY">Thiết bị lỗi/chập chờn (Quét xịt 3 lần)</option>
                     </select>
+                    <button onclick="RequesterFlow.attemptNfc()" class="outline">Thực hiện quét NFC</button>
+                    <div id="nfcAttemptResult" class="log-container"></div>
                 </div>
-                
-                <div style="display: flex; gap: 10px;">
-                    <button onclick="HelperFlow.declineTicket()" class="outline" style="border-color: var(--error-text); color: var(--error-text);">Từ chối</button>
-                    <button onclick="HelperFlow.submitNfcScan()">Quét NFC & Gửi</button>
+    
+                <div id="helperRegistration" style="display:none;">
+                    <hr>
+                    <h2 class="section-title">3. Đăng ký NFC Hộ</h2>
+                    <div class="form-group">
+                        <label>Nhập số điện thoại người hỗ trợ:</label>
+                        <input type="text" id="helperPhoneInput" placeholder="Ví dụ: 0901234567" value="0901234567">
+                        <button onclick="RequesterFlow.validateHelper()">Kiểm tra thông tin</button>
+                        <div id="helperValidateResult" class="log-container"></div>
+                    </div>
+                    
+                    <div id="tncConfirm" style="display:none; background: var(--secondary-color); padding: 16px; border-radius: 12px;">
+                        <p style="margin-top:0; font-size: 0.9rem;">Người hỗ trợ: <strong id="maskedHelperName" style="color: var(--primary-color);"></strong></p>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="tncCheckbox"> 
+                            <label style="margin:0; cursor:pointer;" for="tncCheckbox">Tôi đồng ý với các Điều khoản & Thỏa thuận chia sẻ thông tin</label>
+                        </div>
+                        <button onclick="RequesterFlow.createTicket()">Gửi yêu cầu hỗ trợ</button>
+                    </div>
+                    
+                    <div id="longPollStatus" class="log-container"></div>
+                    <button id="resendBtn" class="outline" style="display:none; margin-top: 12px;" onclick="RequesterFlow.resendOtt()">Gửi lại thông báo (OTT)</button>
                 </div>
-                
-                <div id="helperScanResult" class="log-container"></div>
             </div>
-
+        </div>
+    
+        <div class="device-mockup" id="helperPane">
+            <div class="app-header">MBank - Người hỗ trợ</div>
+            <div class="app-body">
+                
+                <div class="form-group">
+                    <h2 class="section-title">Hộp thư yêu cầu</h2>
+                    <div style="margin-bottom:10px;">
+                        <h3>Đăng ký Người Dùng Mới</h3>
+                        <input type="text" id="signupPhone" placeholder="SĐT mới" value="0988888888">
+                        <input type="text" id="signupName" placeholder="Tên" value="Le Van D">
+                        <button onclick="HelperFlow.signupUser()">Đăng ký</button>
+                        <div id="signupResult"></div>
+                    </div>
+                    <hr>
+                    <label>Đang đăng nhập với SĐT:</label>
+                    <input type="text" id="myPhoneInput" placeholder="SĐT của bạn" value="0901234567">
+                    <button onclick="HelperFlow.fetchRequests()">Tải lại thông báo (Check OTT)</button>
+                </div>
+    
+                <div id="inboxList"></div>
+    
+                <div id="ticketAction" style="display:none;">
+                    <hr>
+                    <h2 class="section-title">Xử lý yêu cầu NFC</h2>
+                    <div style="background: var(--success-bg); padding: 16px; border-radius: 12px; margin-bottom: 20px;">
+                        <p style="margin: 0 0 8px 0; font-size: 0.9rem; color: var(--success-text);">Yêu cầu từ: <strong id="reqName"></strong></p>
+                        <p style="margin: 0; font-size: 0.8rem; color: #666;">Mã phiếu: <span id="activeTicketId"></span></p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Thiết bị của bạn (Helper):</label>
+                        <select id="helperDeviceType">
+                            <option value="GOOD">Thiết bị tốt (Quét thành công)</option>
+                            <option value="NO_NFC">Không có NFC (Báo lỗi không thể hỗ trợ)</option>
+                            <option value="SHODDY">Thiết bị lỗi/chập chờn (Quét xịt 3 lần)</option>
+                        </select>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="HelperFlow.declineTicket()" class="outline" style="border-color: var(--error-text); color: var(--error-text);">Từ chối</button>
+                        <button onclick="HelperFlow.submitNfcScan()">Quét NFC & Gửi</button>
+                    </div>
+                    
+                    <div id="helperScanResult" class="log-container"></div>
+                </div>
+    
+            </div>
         </div>
     </div>
 
