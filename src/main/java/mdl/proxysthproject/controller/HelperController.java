@@ -2,6 +2,7 @@ package mdl.proxysthproject.controller;
 
 import mdl.proxysthproject.model.EbUser;
 import mdl.proxysthproject.model.NfcTicket;
+import mdl.proxysthproject.repository.EbUserRepository;
 import mdl.proxysthproject.repository.NfcTicketRepository;
 import mdl.proxysthproject.service.NfcTicketService;
 import mdl.proxysthproject.util.NameMaskingUtil;
@@ -12,18 +13,27 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/helper")
+@RequestMapping("/api")
 public class HelperController {
 
     private final NfcTicketService ticketService;
     private final NfcTicketRepository ticketRepository;
+    private final EbUserRepository userRepository;
 
-    public HelperController(NfcTicketService ticketService, NfcTicketRepository ticketRepository) {
+    public HelperController(NfcTicketService ticketService, NfcTicketRepository ticketRepository, EbUserRepository userRepository) {
         this.ticketService = ticketService;
         this.ticketRepository = ticketRepository;
+        this.userRepository = userRepository;
     }
 
-    @PostMapping("/validate-phone")
+    @PostMapping("/users/signup")
+    public ResponseEntity<?> signup(@RequestBody EbUser user) {
+        user.setStatus("ACTIVE"); // default to ACTIVE
+        userRepository.save(user);
+        return ResponseEntity.ok(Map.of("message", "User created successfully", "phone", user.getPhone()));
+    }
+
+    @PostMapping("/helper/validate-phone")
     public ResponseEntity<?> validatePhone(@RequestBody Map<String, String> payload) {
         String phone = payload.get("phone");
         try {
@@ -39,7 +49,7 @@ public class HelperController {
         }
     }
 
-    @GetMapping("/requests/{phone}")
+    @GetMapping("/helper/requests/{phone}")
     public List<NfcTicket> getRequests(@PathVariable String phone) {
         return ticketRepository.findByHelperPhone(phone);
     }

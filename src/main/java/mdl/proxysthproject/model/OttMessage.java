@@ -8,15 +8,19 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
-@Table(name = "eb_users")
+@Table(name = "ott_messages")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class EbUser {
+public class OttMessage {
     @Id
-    private String phone;
-    private String name;
-    private String status; // ACTIVE or INACTIVE
+    private String id;
+    private String recipientPhone;
+    private String title;
+    private String body;
+    private LocalDateTime timestamp;
 }

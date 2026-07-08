@@ -1,15 +1,21 @@
 package mdl.proxysthproject.model;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Entity
+@Table(name = "ekyc_sessions")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class EkycSession {
+    @Id
     private String transactionId;
     private String idNumber;
     private String birthDate;

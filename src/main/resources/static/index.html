@@ -65,6 +65,14 @@
             
             <div class="form-group">
                 <h2 class="section-title">Hộp thư yêu cầu</h2>
+                <div style="margin-bottom:10px;">
+                    <h3>Đăng ký Người Dùng Mới</h3>
+                    <input type="text" id="signupPhone" placeholder="SĐT mới" value="0988888888">
+                    <input type="text" id="signupName" placeholder="Tên" value="Le Van D">
+                    <button onclick="HelperFlow.signupUser()">Đăng ký</button>
+                    <div id="signupResult"></div>
+                </div>
+                <hr>
                 <label>Đang đăng nhập với SĐT:</label>
                 <input type="text" id="myPhoneInput" placeholder="SĐT của bạn" value="0901234567">
                 <button onclick="HelperFlow.fetchRequests()">Tải lại thông báo (Check OTT)</button>

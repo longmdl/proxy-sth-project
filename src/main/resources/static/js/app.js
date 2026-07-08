@@ -127,6 +127,23 @@ const HelperFlow = {
     // Biến trạng thái
     activeTicketId: null,
 
+    async signupUser() {
+        const phone = document.getElementById('signupPhone').value;
+        const name = document.getElementById('signupName').value;
+        const res = await fetch('/api/users/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone, name })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            UIService.logTo('signupResult', 'Đăng ký thành công!');
+            document.getElementById('myPhoneInput').value = phone;
+        } else {
+            UIService.logTo('signupResult', 'Error: ' + JSON.stringify(data), true);
+        }
+    },
+
     async fetchRequests() {
         const phone = document.getElementById('myPhoneInput').value;
         const res = await fetch(`/api/helper/requests/${phone}`);

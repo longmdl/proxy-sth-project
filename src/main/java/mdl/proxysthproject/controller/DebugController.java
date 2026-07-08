@@ -2,6 +2,7 @@ package mdl.proxysthproject.controller;
 
 import mdl.proxysthproject.model.AuditLog;
 import mdl.proxysthproject.model.NfcTicket;
+import mdl.proxysthproject.model.OttMessage;
 import mdl.proxysthproject.repository.NfcTicketRepository;
 import mdl.proxysthproject.service.NotificationService;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +26,7 @@ public class DebugController {
     }
 
     @GetMapping("/debug/notifications")
-    public List<NotificationService.OttMessage> getAllNotifications() {
+    public List<OttMessage> getAllNotifications() {
         return notificationService.getAllMessages();
     }
 
