@@ -41,6 +41,7 @@ public class EkycController {
                 return Map.of("success", true, "fallbackToHelper", false, "message", "Quét NFC thành công");
             } else {
                 session.setNfcAttemptCount(session.getNfcAttemptCount() + 1);
+                ekycService.saveSession(session);
                 int maxAttempts = ekycService.getMaxAttempts();
                 
                 if (session.getNfcAttemptCount() >= maxAttempts) {

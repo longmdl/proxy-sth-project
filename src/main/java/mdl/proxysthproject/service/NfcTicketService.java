@@ -25,7 +25,7 @@ public class NfcTicketService {
     @Value("${nfc.max-attempts:3}")
     private int maxAttempts;
 
-    @Value("${nfc.request.ttl-minutes:5}")
+    @Value("${nfc.request.ttl-minutes:15}")
     private int requestTtlMinutes;
 
     @Value("${nfc.helper.ttl-minutes:15}")
@@ -128,7 +128,8 @@ public class NfcTicketService {
         
         return ticket;
     }
-
+    
+    @Transactional(noRollbackFor = IllegalStateException.class)
     public void submitNfcScan(String ticketId, String helperPhone, NfcPayload payload) {
         NfcTicket ticket = getValidTicket(ticketId, true);
         if (!ticket.getHelperPhone().equals(helperPhone)) {
@@ -136,7 +137,8 @@ public class NfcTicketService {
         }
         
         ticket.setAttemptCounts(ticket.getAttemptCounts() + 1);
-        
+        ticketRepository.save(ticket);
+
         if (payload.isForceMatchFail()) {
             addAudit(ticket, "SCAN_FAIL", helperPhone, "NFC scan or match failed (Forced)");
             if (ticket.getAttemptCounts() >= maxAttempts) {

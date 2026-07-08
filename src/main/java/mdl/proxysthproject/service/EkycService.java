@@ -42,4 +42,7 @@ public class EkycService {
         repository.save(session);
         return session;
     }
+    public void saveSession(EkycSession session) {
+        repository.save(session);
+    }
 }
