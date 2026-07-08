@@ -28,6 +28,9 @@ public class HelperController {
 
     @PostMapping("/users/signup")
     public ResponseEntity<?> signup(@RequestBody EbUser user) {
+        if (userRepository.existsById(user.getPhone())) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Số điện thoại này đã được đăng ký!"));
+        }
         user.setStatus("ACTIVE"); // default to ACTIVE
         userRepository.save(user);
         return ResponseEntity.ok(Map.of("message", "User created successfully", "phone", user.getPhone()));

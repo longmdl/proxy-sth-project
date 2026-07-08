@@ -10,8 +10,11 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.Optional;
+import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 public class NfcTicketService {
 
     private final NfcTicketRepository ticketRepository;
@@ -41,6 +44,14 @@ public class NfcTicketService {
     }
 
     public NfcTicket createTicket(String requesterId, String requesterName, String helperPhone, JourneyType journeyType) {
+        // Check for active requests
+        long activeCount = ticketRepository.countByRequesterIdAndStatusIn(requesterId, 
+            List.of(TicketStatus.CREATED, TicketStatus.SENT, TicketStatus.VIEWED));
+            
+        if (activeCount > 0) {
+            throw new IllegalStateException("Bạn đã có một yêu cầu hỗ trợ đang xử lý, vui lòng chờ!");
+        }
+
         EbUser helper = validateHelperPhone(helperPhone)
                 .orElseThrow(() -> new IllegalArgumentException("Số điện thoại không phù hợp để NFC hộ"));
 

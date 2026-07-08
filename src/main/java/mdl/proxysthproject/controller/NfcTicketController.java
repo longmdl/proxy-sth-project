@@ -25,13 +25,18 @@ public class NfcTicketController {
     }
 
     @PostMapping
-    public NfcTicket createTicket(@RequestBody Map<String, String> payload) {
-        String requesterId = payload.get("requesterId");
-        String requesterName = payload.get("requesterName");
-        String helperPhone = payload.get("helperPhone");
-        JourneyType journeyType = JourneyType.valueOf(payload.getOrDefault("journeyType", "NTB"));
-        
-        return ticketService.createTicket(requesterId, requesterName, helperPhone, journeyType);
+    public ResponseEntity<?> createTicket(@RequestBody Map<String, String> payload) {
+        try {
+            String requesterId = payload.get("requesterId");
+            String requesterName = payload.get("requesterName");
+            String helperPhone = payload.get("helperPhone");
+            JourneyType journeyType = JourneyType.valueOf(payload.getOrDefault("journeyType", "NTB"));
+            
+            NfcTicket ticket = ticketService.createTicket(requesterId, requesterName, helperPhone, journeyType);
+            return ResponseEntity.ok(ticket);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     @GetMapping("/{id}/await")

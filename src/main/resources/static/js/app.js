@@ -76,10 +76,17 @@ const RequesterFlow = {
                 journeyType: "NTB"
             })
         });
-        const ticket = await res.json();
-        this.currentTicketId = ticket.id;
         
-        UIService.logTo('longPollStatus', `Đã tạo phiếu! ${ticket.id}. Đang chờ xác nhận từ người hỗ trợ...`);
+        const data = await res.json();
+        
+        if (!res.ok) {
+            UIService.logTo('longPollStatus', data.error || 'Lỗi tạo phiếu hỗ trợ!', true);
+            return;
+        }
+        
+        this.currentTicketId = data.id;
+        
+        UIService.logTo('longPollStatus', `Đã tạo phiếu! ${data.id}. Đang chờ xác nhận từ người hỗ trợ...`);
         document.getElementById('resendBtn').style.display = 'block';
         
         this.pollForResult(this.currentTicketId);
@@ -236,3 +243,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+async function clearAllData() {
+    if(!confirm("Bạn có chắc chắn muốn xóa toàn bộ dữ liệu? (Users, Tickets, Logs, etc.)")) return;
+    try {
+        const res = await fetch('/api/debug/clear', { method: 'DELETE' });
+        if (res.ok) {
+            alert("Đã xóa sạch dữ liệu!");
+            location.reload(); // Reload trang để làm mới state UI
+        } else {
+            alert("Lỗi khi xóa dữ liệu!");
+        }
+    } catch (e) {
+        alert("Không thể kết nối đến server.");
+    }
+}
