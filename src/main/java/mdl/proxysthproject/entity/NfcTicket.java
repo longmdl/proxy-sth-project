@@ -52,6 +52,11 @@ public class NfcTicket {
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "ticket_id")
     private List<AuditLog> auditLogs = new ArrayList<>();
+   
+    @Builder.Default
+    private int ottResendCount = 0;
+    
+    private LocalDateTime lastOttSentAt;
     
     public void addAuditLog(AuditLog log) {
         this.auditLogs.add(log);

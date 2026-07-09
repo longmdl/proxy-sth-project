@@ -17,6 +17,8 @@ spring:
 
 nfc:
   max-attempts: 3
+  ott.max-resend: 3
+  ott.cooldown-seconds: 60
   request:
     ttl-minutes: 15
   helper:

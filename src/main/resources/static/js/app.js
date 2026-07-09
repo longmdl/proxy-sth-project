@@ -54,7 +54,7 @@ const RequesterFlow = {
             document.getElementById('maskedHelperName').innerText = data.maskedName;
             document.getElementById('tncConfirm').style.display = 'block';
         } else {
-            UIService.logTo('helperValidateResult', data.error, true);
+            UIService.logTo('helperValidateResult', data.message, true);
             document.getElementById('tncConfirm').style.display = 'none';
         }
     },
@@ -80,7 +80,7 @@ const RequesterFlow = {
         const data = await res.json();
         
         if (!res.ok) {
-            UIService.logTo('longPollStatus', data.error || 'Lỗi tạo phiếu hỗ trợ!', true);
+            UIService.logTo('longPollStatus', data.message || 'Lỗi tạo phiếu hỗ trợ!', true);
             return;
         }
         
@@ -218,7 +218,7 @@ const HelperFlow = {
             this.fetchRequests();
         } else {
             const data = await res.json();
-            UIService.logTo('helperScanResult', 'Lỗi: ' + data.error, true);
+            UIService.logTo('helperScanResult', 'Lỗi: ' + data.message, true);
         }
     }
 };

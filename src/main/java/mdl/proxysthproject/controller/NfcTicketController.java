@@ -26,17 +26,13 @@ public class NfcTicketController {
 
     @PostMapping
     public ResponseEntity<?> createTicket(@RequestBody Map<String, String> payload) {
-        try {
-            String requesterId = payload.get("requesterId");
-            String requesterName = payload.get("requesterName");
-            String helperPhone = payload.get("helperPhone");
-            JourneyType journeyType = JourneyType.valueOf(payload.getOrDefault("journeyType", "NTB"));
-            
-            NfcTicket ticket = ticketService.createTicket(requesterId, requesterName, helperPhone, journeyType);
-            return ResponseEntity.ok(ticket);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
+        String requesterId = payload.get("requesterId");
+        String requesterName = payload.get("requesterName");
+        String helperPhone = payload.get("helperPhone");
+        JourneyType journeyType = JourneyType.valueOf(payload.getOrDefault("journeyType", "NTB"));
+        
+        NfcTicket ticket = ticketService.createTicket(requesterId, requesterName, helperPhone, journeyType);
+        return ResponseEntity.ok(ticket);
     }
 
     @GetMapping("/{id}/await")
@@ -48,23 +44,15 @@ public class NfcTicketController {
 
     @PostMapping("/{id}/resend")
     public ResponseEntity<?> resendOtt(@PathVariable String id) {
-        try {
-            ticketService.resendOtt(id);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
+        ticketService.resendOtt(id);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{id}/decline")
     public ResponseEntity<?> declineTicket(@PathVariable String id, @RequestBody Map<String, String> payload) {
         String helperPhone = payload.get("helperPhone");
-        try {
-            ticketService.declineTicket(id, helperPhone);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
+        ticketService.declineTicket(id, helperPhone);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{id}/nfc-scan")
@@ -80,11 +68,7 @@ public class NfcTicketController {
                 .forceMatchFail((Boolean) payload.getOrDefault("forceMatchFail", false))
                 .build();
                 
-        try {
-            ticketService.submitNfcScan(id, helperPhone, nfcPayload);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
+        ticketService.submitNfcScan(id, helperPhone, nfcPayload);
+        return ResponseEntity.ok().build();
     }
 }

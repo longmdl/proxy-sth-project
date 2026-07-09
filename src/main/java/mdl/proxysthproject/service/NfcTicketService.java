@@ -37,6 +37,12 @@ public class NfcTicketService {
     @Value("${nfc.helper.ttl-minutes:15}")
     private int helperTtlMinutes;
 
+    @Value("${nfc.ott.max-resend:3}")
+    private int maxOttResend;
+
+    @Value("${nfc.ott.cooldown-seconds:60}")
+    private int ottCooldownSeconds;
+
     public NfcTicketService(NfcTicketRepository ticketRepository, EbUserRepository userRepository,
                             NotificationService notificationService, LongPollService longPollService) {
         this.ticketRepository = ticketRepository;
@@ -87,7 +93,24 @@ public class NfcTicketService {
     
     public void resendOtt(String ticketId) {
         NfcTicket ticket = getValidTicket(ticketId, false);
+        if (ticket.getOttResendCount() >= maxOttResend) {
+            throw new IllegalStateException("Bạn đã vượt quá số lần gửi lại thông báo cho phép (Tối đa " + maxOttResend + " lần).");
+        }
+
+        if (ticket.getLastOttSentAt() != null) {
+            long secondsSinceLastSent = java.time.Duration.between(ticket.getLastOttSentAt(), LocalDateTime.now()).getSeconds();
+            if (secondsSinceLastSent < ottCooldownSeconds) {
+                long waitTime = ottCooldownSeconds - secondsSinceLastSent;
+                throw new IllegalStateException("Vui lòng chờ " + waitTime + " giây trước khi gửi lại yêu cầu.");
+            }
+        }
+
         sendOttToHelper(ticket);
+
+        ticket.setOttResendCount(ticket.getOttResendCount() + 1);
+        ticket.setLastOttSentAt(LocalDateTime.now());
+        ticketRepository.save(ticket); 
+
         addAudit(ticket, "RESEND_OTT", ticket.getRequesterId(), "Resent OTT to helper");
     }
 

@@ -29,7 +29,7 @@ public class HelperController {
     @PostMapping("/users/signup")
     public ResponseEntity<?> signup(@RequestBody EbUser user) {
         if (userRepository.existsById(user.getPhone())) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Số điện thoại này đã được đăng ký!"));
+            throw new IllegalArgumentException("Số điện thoại này đã được đăng ký!");
         }
         user.setStatus("ACTIVE"); // default to ACTIVE
         userRepository.save(user);
@@ -39,17 +39,13 @@ public class HelperController {
     @PostMapping("/helper/validate-phone")
     public ResponseEntity<?> validatePhone(@RequestBody Map<String, String> payload) {
         String phone = payload.get("phone");
-        try {
-            EbUser helper = ticketService.validateHelperPhone(phone)
-                    .orElseThrow(() -> new IllegalArgumentException("Số điện thoại không phù hợp để NFC hộ"));
-            
-            return ResponseEntity.ok(Map.of(
-                "phone", helper.getPhone(),
-                "maskedName", NameMaskingUtil.maskName(helper.getName())
-            ));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
+        EbUser helper = ticketService.validateHelperPhone(phone)
+                .orElseThrow(() -> new IllegalArgumentException("Số điện thoại không phù hợp để NFC hộ"));
+        
+        return ResponseEntity.ok(Map.of(
+            "phone", helper.getPhone(),
+            "maskedName", NameMaskingUtil.maskName(helper.getName())
+        ));
     }
 
     @GetMapping("/helper/requests/{phone}")
