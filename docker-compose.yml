@@ -6,6 +6,7 @@ services:
       POSTGRES_DB: proxydb
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgrespassword
+      TZ: Asia/Ho_Chi_Minh
     ports:
       - "5432:5432"
     volumes:
@@ -15,6 +16,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    restart: always
 
   app:
     build: .
@@ -22,6 +24,7 @@ services:
     ports:
       - "8080:8080"
     environment:
+      - TZ=Asia/Ho_Chi_Minh
       - DB_HOST=db
       - DB_PORT=5432
       - DB_NAME=proxydb

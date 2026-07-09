@@ -1,8 +1,8 @@
 package mdl.proxysthproject.repository;
 
-import mdl.proxysthproject.model.OttMessage;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import mdl.proxysthproject.entity.OttMessage;
 
 import java.util.List;
 

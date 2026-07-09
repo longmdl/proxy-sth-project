@@ -1,6 +1,6 @@
 package mdl.proxysthproject.controller;
 
-import mdl.proxysthproject.model.EkycSession;
+import mdl.proxysthproject.entity.EkycSession;
 import mdl.proxysthproject.service.EkycService;
 import org.springframework.web.bind.annotation.*;
 

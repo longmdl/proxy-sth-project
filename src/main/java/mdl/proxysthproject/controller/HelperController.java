@@ -1,7 +1,7 @@
 package mdl.proxysthproject.controller;
 
-import mdl.proxysthproject.model.EbUser;
-import mdl.proxysthproject.model.NfcTicket;
+import mdl.proxysthproject.entity.EbUser;
+import mdl.proxysthproject.entity.NfcTicket;
 import mdl.proxysthproject.repository.EbUserRepository;
 import mdl.proxysthproject.repository.NfcTicketRepository;
 import mdl.proxysthproject.service.NfcTicketService;

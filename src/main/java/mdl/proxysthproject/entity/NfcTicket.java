@@ -1,4 +1,4 @@
-package mdl.proxysthproject.model;
+package mdl.proxysthproject.entity;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -14,6 +14,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import mdl.proxysthproject.enums.JourneyType;
+import mdl.proxysthproject.enums.TicketStatus;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

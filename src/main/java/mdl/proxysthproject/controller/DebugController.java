@@ -1,8 +1,8 @@
 package mdl.proxysthproject.controller;
 
-import mdl.proxysthproject.model.AuditLog;
-import mdl.proxysthproject.model.NfcTicket;
-import mdl.proxysthproject.model.OttMessage;
+import mdl.proxysthproject.entity.AuditLog;
+import mdl.proxysthproject.entity.NfcTicket;
+import mdl.proxysthproject.entity.OttMessage;
 import mdl.proxysthproject.repository.NfcTicketRepository;
 import mdl.proxysthproject.service.NotificationService;
 import org.springframework.http.ResponseEntity;
@@ -28,11 +28,13 @@ public class DebugController {
     private final EkycSessionRepository ekycSessionRepository;
     private final OttMessageRepository ottMessageRepository;
 
-    public DebugController(NotificationService notificationService, 
-                           NfcTicketRepository ticketRepository,
-                           EbUserRepository ebUserRepository,
-                           EkycSessionRepository ekycSessionRepository,
-                           OttMessageRepository ottMessageRepository) {
+    public DebugController(
+        NotificationService notificationService, 
+        NfcTicketRepository ticketRepository,
+        EbUserRepository ebUserRepository,
+        EkycSessionRepository ekycSessionRepository,
+        OttMessageRepository ottMessageRepository) 
+    {
         this.notificationService = notificationService;
         this.ticketRepository = ticketRepository;
         this.ebUserRepository = ebUserRepository;

@@ -1,4 +1,4 @@
-package mdl.proxysthproject.model;
+package mdl.proxysthproject.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

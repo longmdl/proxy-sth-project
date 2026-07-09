@@ -1,9 +1,15 @@
 package mdl.proxysthproject.service;
 
-import mdl.proxysthproject.model.*;
+import mdl.proxysthproject.dto.NfcPayloadDto;
+import mdl.proxysthproject.dto.NfcResultResponse;
+import mdl.proxysthproject.entity.AuditLog;
+import mdl.proxysthproject.entity.EbUser;
+import mdl.proxysthproject.entity.NfcPayload;
+import mdl.proxysthproject.entity.NfcTicket;
+import mdl.proxysthproject.enums.JourneyType;
+import mdl.proxysthproject.enums.TicketStatus;
 import mdl.proxysthproject.repository.EbUserRepository;
 import mdl.proxysthproject.repository.NfcTicketRepository;
-// import mdl.proxysthproject.util.NameMaskingUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -154,8 +160,9 @@ public class NfcTicketService {
         ticket.setStatus(TicketStatus.COMPLETED);
         addAudit(ticket, "SCAN_SUCCESS", helperPhone, "NFC scan successful");
         
-        // Resolve long poll
-        NfcResultResponse response = new NfcResultResponse(ticketId, TicketStatus.COMPLETED, "NFC hộ thành công", payload);
+        NfcPayloadDto payloadDto = mapToDto(payload);
+        
+        NfcResultResponse response = new NfcResultResponse(ticketId, TicketStatus.COMPLETED, "NFC hộ thành công", payloadDto);
         longPollService.resolve(ticketId, response);
     }
     
@@ -168,5 +175,20 @@ public class NfcTicketService {
                 .reason(reason)
                 .build();
         ticket.addAuditLog(log);
+    }
+
+    private NfcPayloadDto mapToDto(NfcPayload payload) {
+        if (payload == null) {
+            return null;
+        }
+        return NfcPayloadDto.builder()
+                .id(payload.getId())
+                .idNumber(payload.getIdNumber())
+                .fullName(payload.getFullName())
+                .dob(payload.getDob())
+                .expiry(payload.getExpiry())
+                .portraitHash(payload.getPortraitHash())
+                .forceMatchFail(payload.isForceMatchFail())
+                .build();
     }
 }

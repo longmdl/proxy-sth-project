@@ -1,9 +1,9 @@
 package mdl.proxysthproject.controller;
 
-import mdl.proxysthproject.model.JourneyType;
-import mdl.proxysthproject.model.NfcPayload;
-import mdl.proxysthproject.model.NfcResultResponse;
-import mdl.proxysthproject.model.NfcTicket;
+import mdl.proxysthproject.dto.NfcResultResponse;
+import mdl.proxysthproject.entity.NfcPayload;
+import mdl.proxysthproject.entity.NfcTicket;
+import mdl.proxysthproject.enums.JourneyType;
 import mdl.proxysthproject.service.LongPollService;
 import mdl.proxysthproject.service.NfcTicketService;
 import org.springframework.http.ResponseEntity;

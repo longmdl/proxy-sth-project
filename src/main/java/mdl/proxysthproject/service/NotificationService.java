@@ -1,7 +1,7 @@
 package mdl.proxysthproject.service;
 
 import lombok.extern.slf4j.Slf4j;
-import mdl.proxysthproject.model.OttMessage;
+import mdl.proxysthproject.entity.OttMessage;
 import mdl.proxysthproject.repository.OttMessageRepository;
 import org.springframework.stereotype.Service;
 

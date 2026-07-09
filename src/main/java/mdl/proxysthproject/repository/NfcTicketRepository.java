@@ -1,7 +1,8 @@
 package mdl.proxysthproject.repository;
 
-import mdl.proxysthproject.model.NfcTicket;
-import mdl.proxysthproject.model.TicketStatus;
+import mdl.proxysthproject.entity.NfcTicket;
+import mdl.proxysthproject.enums.TicketStatus;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
 

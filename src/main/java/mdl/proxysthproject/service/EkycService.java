@@ -1,6 +1,6 @@
 package mdl.proxysthproject.service;
 
-import mdl.proxysthproject.model.EkycSession;
+import mdl.proxysthproject.entity.EkycSession;
 import mdl.proxysthproject.repository.EkycSessionRepository;
 import org.springframework.stereotype.Service;
 

@@ -1,9 +1,10 @@
 package mdl.proxysthproject.service;
 
-import mdl.proxysthproject.model.NfcResultResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.async.DeferredResult;
+
+import mdl.proxysthproject.dto.NfcResultResponse;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

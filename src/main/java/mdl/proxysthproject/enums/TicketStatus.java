@@ -1,4 +1,4 @@
-package mdl.proxysthproject.model;
+package mdl.proxysthproject.enums;
 
 public enum TicketStatus {
     CREATED,
