@@ -161,7 +161,7 @@ const HelperFlow = {
             if (t.status === "SENT" || t.status === "CREATED") {
                 html += `<div class="inbox-card">
                     <p>Yêu cầu từ: <strong>${t.requesterName}</strong></p>
-                    <p>Thời gian: ${new Date(t.createdAt).toLocaleTimeString()}</p>
+                    <p>Thời gian: ${new Date(t.createdAt + 'Z').toLocaleTimeString('vi-VN')}</p>
                     <button onclick="HelperFlow.selectTicket('${t.id}', '${t.requesterName}')">Mở yêu cầu</button>
                 </div>`;
             }

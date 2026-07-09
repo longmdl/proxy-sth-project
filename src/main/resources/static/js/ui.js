@@ -4,9 +4,9 @@ const UIService = {
             const el = document.getElementById(elementId);
             if(!el) return;
             const className = isError ? "error" : "success";
-            el.innerHTML = `<div class="log ${className}">${new Date().toLocaleTimeString()} - ${msg}</div>`;
+            el.innerHTML = `<div class="log ${className}">${new Date().toLocaleTimeString("vi-VN")} - ${msg}</div>`;
       },
-
+      
       // Hiển thị Toast Notification rơi từ trên xuống
       showToast: function(message, type, paneId) {
             const pane = document.getElementById(paneId);
