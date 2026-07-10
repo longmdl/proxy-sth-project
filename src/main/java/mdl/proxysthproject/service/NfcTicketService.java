@@ -37,6 +37,12 @@ public class NfcTicketService {
     @Value("${nfc.helper.ttl-minutes:15}")
     private int helperTtlMinutes;
 
+    @Value("${nfc.create.daily-limit:3}")
+    private int dailyCreateLimit;
+
+    @Value("${nfc.create.cooldown-minutes:15}")
+    private int createCooldownMinutes;
+
     @Value("${nfc.ott.max-resend:3}")
     private int maxOttResend;
 
@@ -56,6 +62,24 @@ public class NfcTicketService {
     }
 
     public NfcTicket createTicket(String requesterId, String requesterName, String helperPhone, JourneyType journeyType) {
+        LocalDateTime now = LocalDateTime.now();
+
+        LocalDateTime twentyFourHoursAgo = now.minusHours(24);
+        long dailyCount = ticketRepository.countByRequesterIdAndCreatedAtAfter(requesterId, twentyFourHoursAgo);
+        if (dailyCount >= dailyCreateLimit) {
+            throw new IllegalStateException("Bạn đã vượt quá số lần tạo yêu cầu trong ngày (Tối đa " + dailyCreateLimit + " lần). Vui lòng chờ 24h.");
+        }
+
+        Optional<NfcTicket> latestTicketOpt = ticketRepository.findFirstByRequesterIdOrderByCreatedAtDesc(requesterId);
+        if (latestTicketOpt.isPresent()) {
+            LocalDateTime latestCreatedAt = latestTicketOpt.get().getCreatedAt();
+            long minutesSinceLastCreate = java.time.Duration.between(latestCreatedAt, now).toMinutes();
+            if (minutesSinceLastCreate < createCooldownMinutes) {
+                long waitTime = createCooldownMinutes - minutesSinceLastCreate;
+                throw new IllegalStateException("Vui lòng chờ " + waitTime + " phút trước khi tạo yêu cầu mới.");
+            }
+        }
+
         // Check for active requests
         long activeCount = ticketRepository.countByRequesterIdAndStatusIn(requesterId, 
             List.of(TicketStatus.CREATED, TicketStatus.SENT, TicketStatus.VIEWED));
@@ -78,6 +102,8 @@ public class NfcTicketService {
                 .createdAt(LocalDateTime.now())
                 .expiresAt(LocalDateTime.now().plusMinutes(requestTtlMinutes))
                 .attemptCounts(0)
+                .ottResendCount(1)
+                .lastOttSentAt(now)
                 .build();
         
         addAudit(ticket, "CREATE", requesterId, "Ticket created");

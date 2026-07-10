@@ -60,36 +60,60 @@ const RequesterFlow = {
     },
 
     async createTicket() {
+        // 1. Giữ nguyên logic kiểm tra Checkbox Điều khoản
         if (!document.getElementById('tncCheckbox').checked) {
             UIService.showToast("Bạn cần đồng ý với Điều khoản và Thỏa thuận.", "warning", "requesterPane");                
             return;
         }
+        
         const helperPhone = document.getElementById('helperPhoneInput').value;
         
-        const res = await fetch('/api/nfc-tickets', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                requesterId: this.userId,
-                requesterName: this.userName,
-                helperPhone: helperPhone,
-                journeyType: "NTB"
-            })
-        });
-        
-        const data = await res.json();
-        
-        if (!res.ok) {
-            UIService.logTo('longPollStatus', data.message || 'Lỗi tạo phiếu hỗ trợ!', true);
-            return;
+        try {
+            const res = await fetch('/api/nfc-tickets', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    requesterId: this.userId,
+                    requesterName: this.userName,
+                    helperPhone: helperPhone,
+                    journeyType: "NTB"
+                })
+            });
+            
+            const data = await res.json();
+            
+            if (res.ok) {
+                this.currentTicketId = data.id;
+                
+                UIService.showToast("Đã gửi yêu cầu trợ giúp!", "success", "requesterPane");
+                UIService.startCountdown('btnSendRequest', 'createTicketTimer', 'createTicketCooldown', 15 * 60);
+                
+                UIService.logTo('longPollStatus', `Đã tạo phiếu! ${data.id}. Đang chờ xác nhận từ người hỗ trợ...`);
+                document.getElementById('resendBtn').style.display = 'block';
+                
+                const waitingArea = document.getElementById('requesterWaitingArea');
+                if (waitingArea) waitingArea.style.display = 'block';
+                
+                this.pollForResult(this.currentTicketId);
+                
+            } else {
+                if (res.status === 429 && data.message && data.message.includes("Tối đa")) {
+                    UIService.showToast(data.message, "danger", "requesterPane");
+                    UIService.startCountdown('btnSendRequest', 'createTicketTimer', 'createTicketCooldown', 24 * 60 * 60);
+                } 
+                else if (res.status === 429) {
+                    UIService.showToast(data.message, "warning", "requesterPane");
+                } 
+                else {
+                    UIService.showToast(data.message || "Không thể tạo yêu cầu!", "danger", "requesterPane");
+                    UIService.logTo('longPollStatus', data.message || 'Lỗi tạo phiếu hỗ trợ!', true);
+                }
+            }
+        } catch (error) {
+            console.error(error);
+            UIService.showToast("Lỗi kết nối đến máy chủ!", "danger", "requesterPane");
+            UIService.logTo('longPollStatus', "Lỗi mạng hoặc server không phản hồi.", true);
         }
-        
-        this.currentTicketId = data.id;
-        
-        UIService.logTo('longPollStatus', `Đã tạo phiếu! ${data.id}. Đang chờ xác nhận từ người hỗ trợ...`);
-        document.getElementById('resendBtn').style.display = 'block';
-        
-        this.pollForResult(this.currentTicketId);
     },
 
     async pollForResult(ticketId) {
@@ -123,6 +147,14 @@ const RequesterFlow = {
         const res = await fetch(`/api/nfc-tickets/${this.currentTicketId}/resend`, { method: 'POST' });
         if (res.ok) {
             UIService.logTo('longPollStatus', 'Đã gửi lại thông báo thành công!');
+        } else {
+            const data = await res.json();
+
+            if (res.status === 429 || data.code === 'RATE_LIMIT_EXCEEDED') {
+                UIService.showToast(data.message, "warning", "requesterPane");
+            } else {
+                UIService.showToast(data.message || "Không thể gửi lại yêu cầu!", "danger", "requesterPane");
+            }
         }
     }
 };
@@ -242,6 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
             HelperFlow.fetchRequests();
         }
     });
+    UIService.resumeCountdown('btnSendRequest', 'createTicketTimer', 'createTicketCooldown');
 });
 
 async function clearAllData() {
@@ -249,6 +282,7 @@ async function clearAllData() {
     try {
         const res = await fetch('/api/debug/clear', { method: 'DELETE' });
         if (res.ok) {
+            localStorage.clear();
             alert("Đã xóa sạch dữ liệu!");
             location.reload(); // Reload trang để làm mới state UI
         } else {
