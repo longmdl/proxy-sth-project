@@ -48,10 +48,17 @@
                     
                     <div id="tncConfirm" style="display:none; background: var(--secondary-color); padding: 16px; border-radius: 12px;">
                         <p style="margin-top:0; font-size: 0.9rem;">Người hỗ trợ: <strong id="maskedHelperName" style="color: var(--primary-color);"></strong></p>
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="tncCheckbox"> 
-                            <label style="margin:0; cursor:pointer;" for="tncCheckbox">Tôi đồng ý với các Điều khoản & Thỏa thuận chia sẻ thông tin</label>
+                        
+                        <div class="custom-checkbox-wrapper">
+                            <input type="checkbox" id="tncCheckbox" class="custom-checkbox"> 
+                            <label style="margin:0; cursor:pointer;" for="tncCheckbox">
+                                <ul class="custom-terms-list">
+                                    <li>Tôi đã đọc và hiểu rõ nội dung thông báo về <u><b>các lưu ý khi chia sẻ thông tin</b></u></li>
+                                    <li><b>Tôi ủy quyền</b> cho Người hỗ trợ thay mặt tôi thực hiện cập nhật sinh trắc học. Tôi sẽ <b>tự chịu mọi trách nhiệm phát sinh</b> và miễn trừ trách nhiệm cho ngân hàng đối với giao dịch ủy quyền này.</li>
+                                </ul>
+                            </label>
                         </div>
+                        
                         <button id="btnSendRequest" onclick="RequesterFlow.createTicket()">Gửi yêu cầu hỗ trợ</button>
                     </div>
                     

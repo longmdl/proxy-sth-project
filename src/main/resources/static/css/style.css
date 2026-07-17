@@ -260,3 +260,62 @@ hr {
     from { opacity: 0; transform: translateY(-5px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* ==============================================
+   CUSTOM CHECKBOX & TERMS TNC
+============================================== */
+.custom-checkbox-wrapper {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+    margin-top: 12px;
+}
+
+/* Vẽ lại ô checkbox vuông vức */
+.custom-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    min-width: 22px;
+    width: 22px;
+    height: 22px;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    background-color: #fff;
+    cursor: pointer;
+    position: relative;
+    margin-top: 3px; /* Đẩy xuống một chút cho bằng với dòng chữ */
+    transition: all 0.2s ease;
+}
+
+/* Đổi màu nền đỏ khi được tick */
+.custom-checkbox:checked {
+    background-color: var(--error-text);
+    border-color: var(--error-text);
+}
+
+/* Vẽ dấu tick màu trắng bằng CSS */
+.custom-checkbox:checked::after {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 2px;
+    width: 5px;
+    height: 11px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+/* Định dạng list gạch đầu dòng */
+.custom-terms-list {
+    margin: 0;
+    padding-left: 20px;
+    font-size: 0.9rem;
+    color: var(--text-main);
+    line-height: 1.5;
+}
+
+.custom-terms-list li {
+    margin-bottom: 6px;
+}

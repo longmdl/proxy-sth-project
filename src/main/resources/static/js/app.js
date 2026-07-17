@@ -1,3 +1,17 @@
+async function fetchWithAuth(url, options = {}) {
+    const token = localStorage.getItem('accessToken');
+    
+    if (!options.headers) {
+        options.headers = {};
+    }
+    
+    if (token) {
+        options.headers['Authorization'] = 'Bearer ' + token;
+    }
+    
+    return await fetch(url, options);
+}
+
 const RequesterFlow = {
     // Biến trạng thái (State)
     currentEkyc: null,
@@ -6,7 +20,7 @@ const RequesterFlow = {
     userName: "Nguyen Van Requester",
 
     async startEkyc() {
-        const res = await fetch('/api/ekyc/start', { method: 'POST' });
+        const res = await fetchWithAuth('/api/ekyc/start', { method: 'POST' });
         this.currentEkyc = await res.json();
         UIService.logTo('ekycResult', 'eKYC started: ' + JSON.stringify(this.currentEkyc));
     },
@@ -19,7 +33,7 @@ const RequesterFlow = {
         const deviceType = document.getElementById('requesterDeviceType').value;
         const simulateSuccess = deviceType === "GOOD";
 
-        const res = await fetch('/api/nfc/attempt', {
+        const res = await fetchWithAuth('/api/nfc/attempt', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -43,7 +57,7 @@ const RequesterFlow = {
 
     async validateHelper() {
         const phone = document.getElementById('helperPhoneInput').value;
-        const res = await fetch('/api/helper/validate-phone', {
+        const res = await fetchWithAuth('/api/helper/validate-phone', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ phone })
@@ -69,7 +83,7 @@ const RequesterFlow = {
         const helperPhone = document.getElementById('helperPhoneInput').value;
         
         try {
-            const res = await fetch('/api/nfc-tickets', {
+            const res = await fetchWithAuth('/api/nfc-tickets', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -118,7 +132,7 @@ const RequesterFlow = {
 
     async pollForResult(ticketId) {
         try {
-            const res = await fetch(`/api/nfc-tickets/${ticketId}/await`);
+            const res = await fetchWithAuth(`/api/nfc-tickets/${ticketId}/await`);
             if (res.status === 400 || res.status === 500) {
                  const err = await res.json();
                  UIService.logTo('longPollStatus', 'Lỗi: ' + JSON.stringify(err), true);
@@ -144,7 +158,7 @@ const RequesterFlow = {
 
     async resendOtt() {
         if (!this.currentTicketId) return;
-        const res = await fetch(`/api/nfc-tickets/${this.currentTicketId}/resend`, { method: 'POST' });
+        const res = await fetchWithAuth(`/api/nfc-tickets/${this.currentTicketId}/resend`, { method: 'POST' });
         if (res.ok) {
             UIService.logTo('longPollStatus', 'Đã gửi lại thông báo thành công!');
         } else {
@@ -169,7 +183,7 @@ const HelperFlow = {
     async signupUser() {
         const phone = document.getElementById('signupPhone').value;
         const name = document.getElementById('signupName').value;
-        const res = await fetch('/api/users/signup', {
+        const res = await fetchWithAuth('/api/users/signup', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ phone, name })
@@ -177,15 +191,32 @@ const HelperFlow = {
         const data = await res.json();
         if (res.ok) {
             UIService.logTo('signupResult', 'Đăng ký thành công!');
+            UIService.showToast(data.message, "success", "signupPane");
             document.getElementById('myPhoneInput').value = phone;
+            await this.login(phone);
         } else {
             UIService.logTo('signupResult', 'Error: ' + JSON.stringify(data), true);
+            UIService.showToast(data.message, "danger", "signupPane");
         }
     },
 
     async fetchRequests() {
         const phone = document.getElementById('myPhoneInput').value;
-        const res = await fetch(`/api/helper/requests/${phone}`);
+        if (!phone) {
+            UIService.showToast("Vui lòng nhập số điện thoại!", "warning", "helperPane");
+            return;
+        }
+        const res = await fetchWithAuth(`/api/helper/requests`);
+        if (!res.ok) {
+            const err = await res.json();
+            if (res.status === 401 || res.status === 403) {
+                UIService.showToast("Vui lòng đăng ký / đăng nhập trước!", "danger", "helperPane");
+            } else {
+                UIService.showToast("Lỗi máy chủ: " + (err.message || "Không thể tải danh sách"), "danger", "helperPane");
+            }
+            return; 
+        }
+        
         const tickets = await res.json();
         
         let html = '';
@@ -211,7 +242,7 @@ const HelperFlow = {
 
     async declineTicket() {
         const phone = document.getElementById('myPhoneInput').value;
-        const res = await fetch(`/api/nfc-tickets/${this.activeTicketId}/decline`, {
+        const res = await fetchWithAuth(`/api/nfc-tickets/${this.activeTicketId}/decline`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ helperPhone: phone })
@@ -238,7 +269,7 @@ const HelperFlow = {
             dob: "01/01/1990", expiry: "01/01/2030", portraitHash: "abcd1234efgh5678", forceMatchFail: forceFail
         };
 
-        const res = await fetch(`/api/nfc-tickets/${this.activeTicketId}/nfc-scan`, {
+        const res = await fetchWithAuth(`/api/nfc-tickets/${this.activeTicketId}/nfc-scan`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -252,7 +283,23 @@ const HelperFlow = {
             const data = await res.json();
             UIService.logTo('helperScanResult', 'Lỗi: ' + data.message, true);
         }
-    }
+    },
+    async login(phone) {
+        const res = await fetchWithAuth('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone: phone })
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+            localStorage.setItem('accessToken', data.accessToken);
+            UIService.showToast("Đăng nhập thành công!", "success", "helperPane");
+            this.fetchRequests(); 
+        } else {
+            UIService.showToast(data.message || "Đăng nhập thất bại", "danger", "helperPane");
+        }
+    },
 };
 
 // ==========================================
@@ -280,7 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function clearAllData() {
     if(!confirm("Bạn có chắc chắn muốn xóa toàn bộ dữ liệu? (Users, Tickets, Logs, etc.)")) return;
     try {
-        const res = await fetch('/api/debug/clear', { method: 'DELETE' });
+        const res = await fetchWithAuth('/api/debug/clear', { method: 'DELETE' });
         if (res.ok) {
             localStorage.clear();
             alert("Đã xóa sạch dữ liệu!");

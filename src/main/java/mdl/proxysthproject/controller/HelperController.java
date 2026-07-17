@@ -7,6 +7,7 @@ import mdl.proxysthproject.repository.NfcTicketRepository;
 import mdl.proxysthproject.service.NfcTicketService;
 import mdl.proxysthproject.util.NameMaskingUtil;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -48,8 +49,9 @@ public class HelperController {
         ));
     }
 
-    @GetMapping("/helper/requests/{phone}")
-    public List<NfcTicket> getRequests(@PathVariable String phone) {
-        return ticketRepository.findByHelperPhone(phone);
+    @GetMapping("/helper/requests")
+    public List<NfcTicket> getRequests() {
+        String realPhone = SecurityContextHolder.getContext().getAuthentication().getName();
+        return ticketRepository.findByHelperPhone(realPhone);
     }
 }

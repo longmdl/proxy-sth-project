@@ -7,6 +7,7 @@ import mdl.proxysthproject.enums.JourneyType;
 import mdl.proxysthproject.service.LongPollService;
 import mdl.proxysthproject.service.NfcTicketService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
@@ -49,16 +50,15 @@ public class NfcTicketController {
     }
 
     @PostMapping("/{id}/decline")
-    public ResponseEntity<?> declineTicket(@PathVariable String id, @RequestBody Map<String, String> payload) {
-        String helperPhone = payload.get("helperPhone");
+    public ResponseEntity<?> declineTicket(@PathVariable String id) {
+        String helperPhone = SecurityContextHolder.getContext().getAuthentication().getName();
         ticketService.declineTicket(id, helperPhone);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{id}/nfc-scan")
     public ResponseEntity<?> submitNfcScan(@PathVariable String id, @RequestBody Map<String, Object> payload) {
-        String helperPhone = (String) payload.get("helperPhone");
-        
+        String helperPhone = SecurityContextHolder.getContext().getAuthentication().getName();        
         NfcPayload nfcPayload = NfcPayload.builder()
                 .idNumber((String) payload.get("idNumber"))
                 .fullName((String) payload.get("fullName"))
